@@ -1,4 +1,4 @@
-package com.novation;
+package com.novation.LaunchpadMiniMK3;
 import java.util.UUID;
 
 import com.bitwig.extension.api.PlatformType;

@@ -1,4 +1,4 @@
-package com.novation;
+package com.novation.LaunchpadMiniMK3;
 
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
