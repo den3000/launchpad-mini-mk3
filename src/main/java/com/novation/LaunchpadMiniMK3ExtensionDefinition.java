@@ -9,7 +9,7 @@ import com.bitwig.extension.controller.api.ControllerHost;
 public class LaunchpadMiniMK3ExtensionDefinition extends ControllerExtensionDefinition
 {
    private static final UUID DRIVER_ID = UUID.fromString("a9a82eb4-f862-49a3-9910-af4f4f97b8ce");
-   
+
    public LaunchpadMiniMK3ExtensionDefinition()
    {
    }
@@ -59,13 +59,13 @@ public class LaunchpadMiniMK3ExtensionDefinition extends ControllerExtensionDefi
    @Override
    public int getNumMidiInPorts()
    {
-      return 0;
+      return 2;
    }
 
    @Override
    public int getNumMidiOutPorts()
    {
-      return 0;
+      return 2;
    }
 
    @Override
