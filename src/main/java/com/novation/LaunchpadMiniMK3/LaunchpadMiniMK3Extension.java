@@ -86,23 +86,23 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
             if (transport.isPlaying().get()) {
                transport.stop();
-               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+               setStaticColor(sessionMidiOut, Pad.pad(8,6), 0x05);
+               setStaticColor(sessionMidiOut, Pad.pad(8,7), 0x7A);
             } else {
                transport.play();
-               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
-               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+               setFlashingColor(sessionMidiOut, Pad.pad(8,6), 0x0D);
+               setFlashingColor(sessionMidiOut, Pad.pad(8,7), 0x0D);
             }
          } else if (midiNoteData == 29) {
             getHost().println("record");
             if (transport.isPlaying().get()) {
                transport.stop();
-               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+               setStaticColor(sessionMidiOut, Pad.pad(8,6), 0x05);
+               setStaticColor(sessionMidiOut, Pad.pad(8,7), 0x7A);
             } else {
                transport.record();
-               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
-               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+               setFlashingColor(sessionMidiOut, Pad.pad(8,6), 0x0D);
+               setFlashingColor(sessionMidiOut, Pad.pad(8,7), 0x0D);
             }
          }
       }
@@ -125,8 +125,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
       if (page == Page.session) {
          getHost().println("Reset colors");
-         setNoColor(sessionMidiOut, Pads.pad(8,6));
-         setNoColor(sessionMidiOut, Pads.pad(8,7));
+         setNoColor(sessionMidiOut, Pad.pad(8,6));
+         setNoColor(sessionMidiOut, Pad.pad(8,7));
       }
 
       isInProgrammersMode = false;
@@ -142,8 +142,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
       sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
 
-      setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-      setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+      setStaticColor(sessionMidiOut, Pad.pad(8,6), 0x05);
+      setStaticColor(sessionMidiOut, Pad.pad(8,7), 0x7A);
 
       isInProgrammersMode = true;
    }
