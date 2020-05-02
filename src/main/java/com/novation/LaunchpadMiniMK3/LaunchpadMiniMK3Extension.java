@@ -78,8 +78,34 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
    }
 
-   private void executeCustomAction(int data1, int data2) {
+   private void executeCustomAction(int midiNoteData, int pressStateData) {
+      PressState pressState = PressState.from(pressStateData);
+      if (pressState == PressState.down) {
+         if (midiNoteData == 19) {
+            getHost().println("play");
 
+            if (transport.isPlaying().get()) {
+               transport.stop();
+               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
+               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+            } else {
+               transport.play();
+               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
+               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+            }
+         } else if (midiNoteData == 29) {
+            getHost().println("record");
+            if (transport.isPlaying().get()) {
+               transport.stop();
+               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
+               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+            } else {
+               transport.record();
+               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
+               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+            }
+         }
+      }
    }
 
    private void switchToDawMode(Page page) {
