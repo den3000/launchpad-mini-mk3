@@ -28,9 +28,15 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       transport = host.createTransport();
       // Looks like we need to have at least
       // one observer to be able to use transport
-      transport.isPlaying().addValueObserver(newValue ->
-         host.println("isPlaying: " + newValue)
-      );
+      transport.isPlaying().addValueObserver(newValue -> {
+         if (isInProgrammersMode) {
+            if (newValue) {
+               pulseTransportButtons();
+            } else {
+               showTransportButtons();
+            }
+         }
+      });
 
       transport.isArrangerLoopEnabled().addValueObserver(newValue -> {
          if (isInProgrammersMode) {
@@ -169,7 +175,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
       sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
 
-      showTransportButtons();
+      if (transport.isPlaying().get()) {
+         pulseTransportButtons();
+      } else {
+         showTransportButtons();
+      }
 
       isInProgrammersMode = true;
    }
