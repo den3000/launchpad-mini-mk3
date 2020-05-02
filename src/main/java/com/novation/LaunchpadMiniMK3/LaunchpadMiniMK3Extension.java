@@ -28,13 +28,18 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       transport = host.createTransport();
 
       sessionMidiIn = host.getMidiInPort(0);
-      sessionMidiIn.setMidiCallback((statusByte, data1, data2) -> {
+      sessionMidiIn.setMidiCallback((statusByte, midiNote, pressStateData) -> {
 
-         if (TopRow.isTopRow(data1)) {
-            if (TopRow.isArrow(data1)) { navigate(data1, data2); }
-            else changeLayout(data1, data2);
+         if (TopRow.isTopRow(midiNote)) {
+            if (TopRow.isArrow(midiNote)) { navigate(midiNote, pressStateData); }
+            else changeLayout(midiNote, pressStateData);
          } else {
-            host.println(String.format("sessionMidiIn midi: %d %d %d", statusByte, data1, data2));
+            if (isInProgrammersMode) {
+               executeSessionAction(midiNote, pressStateData);
+            } else {
+               executeCustomAction(midiNote, pressStateData);
+            }
+            host.println(String.format("sessionMidiIn midi: %d %d %d", statusByte, midiNote, pressStateData));
          }
       });
       sessionMidiIn.setSysexCallback(data -> {
@@ -64,6 +69,14 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       host.println("Launchpad Mini MK3 Initialized");
    }
 
+   private void executeSessionAction(int data1, int data2) {
+
+   }
+
+   private void executeCustomAction(int data1, int data2) {
+
+   }
+
    private void switchToDawMode(Page page) {
       getHost().println("switchToDawMode");
       // Set to DAW mode
@@ -79,6 +92,13 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          case user: sessionMidiOut.sendSysex(Sysex.SESSION_USER); break;
       }
 
+      if (page == Page.session) {
+         getHost().println("Reset colors");
+         setNoColor(sessionMidiOut, 0x0B);
+         setNoColor(sessionMidiOut, 0x51);
+         setNoColor(sessionMidiOut, 0x12);
+      }
+
       isInProgrammersMode = false;
    }
 
@@ -92,14 +112,18 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
       sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
 
+      setStaticColor(sessionMidiOut, 0x0B, 0x05);
+      setFlashingColor(sessionMidiOut, 0x51, 0x13);
+      setPulsingColor(sessionMidiOut, 0x12, 0x2D);
+
       isInProgrammersMode = true;
    }
 
-   private void changeLayout(int data1, int data2) {
-      TopRow topRow = TopRow.from(data1);
-      PressState pressState = PressState.from(data2);
+   private void changeLayout(int midiNoteData, int pressStateData) {
+      TopRow topRow = TopRow.from(midiNoteData);
+      PressState pressState = PressState.from(pressStateData);
       if (pressState == PressState.down) {
-         getHost().println("Layout:" + topRow.toString() + String.format(" sessionMidiIn midi: %d %d", data1, data2));
+         getHost().println("Layout:" + topRow.toString() + String.format(" sessionMidiIn midi: %d %d", midiNoteData, pressStateData));
 
          if (!isInProgrammersMode
                  && (topRow == TopRow.drums && current == Page.userDrums
@@ -115,19 +139,22 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          else if (topRow == TopRow.keys) { current = Page.userKeys; }
          else if (topRow == TopRow.user) { current = Page.user; }
 
-         if (isInProgrammersMode
-                 && (topRow == TopRow.drums || topRow == TopRow.keys || topRow == TopRow.user)) {
+         getHost().println("Selected page: " + current.toString() );
+         if (isInProgrammersMode && (topRow == TopRow.drums ||
+                 topRow == TopRow.keys ||
+                 topRow == TopRow.user ||
+                 topRow == TopRow.session)) {
             switchToDawMode(current);
          }
 
       }
    }
 
-   private void navigate(int data1, int data2) {
-      TopRow arrow = TopRow.from(data1);
-      PressState pressState = PressState.from(data2);
+   private void navigate(int midiNoteData, int pressStateData) {
+      TopRow arrow = TopRow.from(midiNoteData);
+      PressState pressState = PressState.from(pressStateData);
       if (pressState == PressState.down) {
-         getHost().println("Arrow:" + arrow.toString() + String.format(" sessionMidiIn midi: %d %d", data1, data2));
+         getHost().println("Arrow:" + arrow.toString() + String.format(" sessionMidiIn midi: %d %d", midiNoteData, pressStateData));
       }
    }
 
@@ -151,5 +178,19 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       // TODO Send any updates you need here.
    }
 
+   static void setStaticColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
+         midiOut.sendMidi(0x90, padNum, colorPalletIndex);
+   }
 
+   static void setFlashingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
+         midiOut.sendMidi(0x91, padNum, colorPalletIndex);
+   }
+
+   static void setPulsingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
+         midiOut.sendMidi(0x92, padNum, colorPalletIndex);
+   }
+
+   static void setNoColor(MidiOut midiOut, int padNum) {
+         midiOut.sendMidi(0x80, padNum, 0x00);
+   }
 }
