@@ -13,6 +13,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    NoteInput customModesNoteInput;
 
    Page current = Page.session;
+   boolean isInProgrammersMode = false;
 
    protected LaunchpadMiniMK3Extension(final LaunchpadMiniMK3ExtensionDefinition definition, final ControllerHost host)
    {
@@ -52,14 +53,9 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       customModesNoteInput.setShouldConsumeEvents(false);
       
       sessionMidiOut = host.getMidiOutPort(0);
-      // Set to DAW mode
-      sessionMidiOut.sendSysex(Sysex.SET_DAW_MODE);
-      // Clear Daw mode
-      sessionMidiOut.sendSysex(Sysex.CLEAR_DAW_MODE);
-      // Swap to session mode
-      sessionMidiOut.sendSysex(Sysex.SESSION_LAYOUT);
+      switchToDawMode();
 
-//      // Set to programmer's mode
+      //      // Set to programmer's mode
 //      midiOut_0.sendSysex(SYSEX_HEADER + "0e01f7");
 //      midiOut_0.sendSysex(SYSEX_HEADER + "007ff7");
       
@@ -68,19 +64,64 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       host.println("Launchpad Mini MK3 Initialized");
    }
 
+   private void switchToDawMode() {
+      getHost().println("switchToDawMode");
+      // Set to DAW mode
+      sessionMidiOut.sendSysex(Sysex.SET_DAW_MODE);
+      // Clear Daw mode
+      sessionMidiOut.sendSysex(Sysex.CLEAR_DAW_MODE);
+      // Swap to session mode
+      sessionMidiOut.sendSysex(Sysex.SESSION_LAYOUT);
+      isInProgrammersMode = false;
+   }
+
+   private void switchToProgrammersMode() {
+      getHost().println("switchToProgrammersMode");
+      // Set to Programmer's Mode
+      sessionMidiOut.sendSysex(Sysex.SET_DAW_MODE);
+      // Clear Daw mode
+      sessionMidiOut.sendSysex(Sysex.CLEAR_DAW_MODE);
+      // Swap to session mode
+      sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
+      sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
+
+      isInProgrammersMode = true;
+   }
+
    private void changeLayout(int data1, int data2) {
-      TopRow layout = TopRow.from(data1);
+      TopRow topRow = TopRow.from(data1);
       PressState pressState = PressState.from(data2);
-      if (pressState == PressState.up) {
-         getHost().println("Layout:" + layout.toString() + String.format("sessionMidiIn midi: %d %d", data1, data2));
+      if (pressState == PressState.down) {
+         getHost().println("Layout:" + topRow.toString() + String.format(" sessionMidiIn midi: %d %d", data1, data2));
+
+         if (!isInProgrammersMode
+                 && (topRow == TopRow.drums && current == Page.userDrums
+                 || topRow == TopRow.keys && current == Page.userKeys
+                 || topRow == TopRow.user && current == Page.user)) {
+            switchToProgrammersMode();
+            current = Page.custom;
+            return;
+         }
+
+         if (isInProgrammersMode
+                 && (topRow == TopRow.drums || topRow == TopRow.keys || topRow == TopRow.user)) {
+            switchToDawMode();
+            current = Page.session;
+            return;
+         }
+
+         if (topRow == TopRow.session) { current = Page.session; }
+         else if (topRow == TopRow.drums) { current = Page.userDrums; }
+         else if (topRow == TopRow.keys) { current = Page.userKeys; }
+         else if (topRow == TopRow.user) { current = Page.user; }
       }
    }
 
    private void navigate(int data1, int data2) {
       TopRow arrow = TopRow.from(data1);
       PressState pressState = PressState.from(data2);
-      if (pressState == PressState.up) {
-         getHost().println("Arrow:" + arrow.toString() + String.format("sessionMidiIn midi: %d %d", data1, data2));
+      if (pressState == PressState.down) {
+         getHost().println("Arrow:" + arrow.toString() + String.format(" sessionMidiIn midi: %d %d", data1, data2));
       }
    }
 
