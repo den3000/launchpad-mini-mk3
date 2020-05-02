@@ -26,6 +26,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       final ControllerHost host = getHost();      
 
       transport = host.createTransport();
+      // Looks like we need to have at least
+      // one observer to be able to use transport
+      transport.isPlaying().addValueObserver(newValue ->
+         host.println("isPlaying: " + newValue)
+      );
 
       sessionMidiIn = host.getMidiInPort(0);
       sessionMidiIn.setMidiCallback((statusByte, midiNote, pressStateData) -> {
@@ -35,9 +40,9 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
             else changeLayout(midiNote, pressStateData);
          } else {
             if (isInProgrammersMode) {
-               executeSessionAction(midiNote, pressStateData);
-            } else {
                executeCustomAction(midiNote, pressStateData);
+            } else {
+               executeSessionAction(midiNote, pressStateData);
             }
             host.println(String.format("sessionMidiIn midi: %d %d %d", statusByte, midiNote, pressStateData));
          }
