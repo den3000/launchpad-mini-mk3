@@ -53,7 +53,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       customModesNoteInput.setShouldConsumeEvents(false);
       
       sessionMidiOut = host.getMidiOutPort(0);
-      switchToDawMode();
+      switchToDawMode(current);
 
       //      // Set to programmer's mode
 //      midiOut_0.sendSysex(SYSEX_HEADER + "0e01f7");
@@ -64,14 +64,21 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       host.println("Launchpad Mini MK3 Initialized");
    }
 
-   private void switchToDawMode() {
+   private void switchToDawMode(Page page) {
       getHost().println("switchToDawMode");
       // Set to DAW mode
       sessionMidiOut.sendSysex(Sysex.SET_DAW_MODE);
       // Clear Daw mode
       sessionMidiOut.sendSysex(Sysex.CLEAR_DAW_MODE);
-      // Swap to session mode
-      sessionMidiOut.sendSysex(Sysex.SESSION_LAYOUT);
+
+      // Swap to necessary layout
+      switch (page) {
+         case session: sessionMidiOut.sendSysex(Sysex.SESSION_LAYOUT); break;
+         case userDrums: sessionMidiOut.sendSysex(Sysex.SESSION_DRUMS); break;
+         case userKeys: sessionMidiOut.sendSysex(Sysex.SESSION_KEYS); break;
+         case user: sessionMidiOut.sendSysex(Sysex.SESSION_USER); break;
+      }
+
       isInProgrammersMode = false;
    }
 
@@ -103,17 +110,16 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
             return;
          }
 
-         if (isInProgrammersMode
-                 && (topRow == TopRow.drums || topRow == TopRow.keys || topRow == TopRow.user)) {
-            switchToDawMode();
-            current = Page.session;
-            return;
-         }
-
          if (topRow == TopRow.session) { current = Page.session; }
          else if (topRow == TopRow.drums) { current = Page.userDrums; }
          else if (topRow == TopRow.keys) { current = Page.userKeys; }
          else if (topRow == TopRow.user) { current = Page.user; }
+
+         if (isInProgrammersMode
+                 && (topRow == TopRow.drums || topRow == TopRow.keys || topRow == TopRow.user)) {
+            switchToDawMode(current);
+         }
+
       }
    }
 
