@@ -99,9 +99,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
       if (page == Page.session) {
          getHost().println("Reset colors");
-         setNoColor(sessionMidiOut, 0x0B);
-         setNoColor(sessionMidiOut, 0x51);
-         setNoColor(sessionMidiOut, 0x12);
+         setNoColor(sessionMidiOut, Pads.pad(8,6));
+         setNoColor(sessionMidiOut, Pads.pad(8,7));
       }
 
       isInProgrammersMode = false;
@@ -117,9 +116,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
       sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
 
-      setStaticColor(sessionMidiOut, 0x0B, 0x05);
-      setFlashingColor(sessionMidiOut, 0x51, 0x13);
-      setPulsingColor(sessionMidiOut, 0x12, 0x2D);
+      setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
+      setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
 
       isInProgrammersMode = true;
    }
@@ -184,18 +182,22 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    }
 
    static void setStaticColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0x90, padNum, colorPalletIndex);
+         midiOut.sendMidi(0xB0, padNum, colorPalletIndex);
+//         midiOut.sendMidi(0x90, padNum, colorPalletIndex);
    }
 
    static void setFlashingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0x91, padNum, colorPalletIndex);
+         midiOut.sendMidi(0xB1, padNum, colorPalletIndex);
+//         midiOut.sendMidi(0x91, padNum, colorPalletIndex);
    }
 
    static void setPulsingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0x92, padNum, colorPalletIndex);
+         midiOut.sendMidi(0xB2, padNum, colorPalletIndex);
+//         midiOut.sendMidi(0x92, padNum, colorPalletIndex);
    }
 
    static void setNoColor(MidiOut midiOut, int padNum) {
-         midiOut.sendMidi(0x80, padNum, 0x00);
+         midiOut.sendMidi(0xB0, padNum, 0x00);
+//         midiOut.sendMidi(0x80, padNum, 0x00);
    }
 }
