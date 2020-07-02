@@ -1,4 +1,4 @@
-package com.novation.LaunchpadMiniMK3;
+package com.novation.arch;
 
 public enum PageType {
     session, mixer, userDrums, userKeys, user, custom
