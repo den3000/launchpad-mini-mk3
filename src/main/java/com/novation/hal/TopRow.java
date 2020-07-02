@@ -1,4 +1,4 @@
-package com.novation.LaunchpadMiniMK3;
+package com.novation.hal;
 
 public enum TopRow {
     undefined(-1),
@@ -7,15 +7,15 @@ public enum TopRow {
     // layout
     session(95), drums(96), keys(97), user(98);
 
-    static boolean isTopRow(Integer value) {
+    public static boolean isTopRow(Integer value) {
         return value >= up.value && value <= user.value;
     }
 
-    static boolean isArrow(Integer value) {
+    public static boolean isArrow(Integer value) {
         return value >= up.value && value <= right.value;
     }
 
-    static TopRow from(Integer value) {
+    public static TopRow from(Integer value) {
         if (value == up.getValue()) {
             return up;
         } else if (value == down.getValue()) {

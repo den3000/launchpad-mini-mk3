@@ -2,6 +2,10 @@ package com.novation.LaunchpadMiniMK3;
 
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
+import com.novation.hal.Pad;
+import com.novation.hal.PressState;
+import com.novation.hal.Sysex;
+import com.novation.hal.TopRow;
 
 public class LaunchpadMiniMK3Extension extends ControllerExtension
 {

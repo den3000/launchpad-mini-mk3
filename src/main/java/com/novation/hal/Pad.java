@@ -1,4 +1,4 @@
-package com.novation.LaunchpadMiniMK3;
+package com.novation.hal;
 
 public class Pad {
 
@@ -48,7 +48,7 @@ public class Pad {
         return array[y+1][8];
     }
 
-    static int pad(int x, int y) {
+    public static int pad(int x, int y) {
         return array[y+1][x];
     }
 
