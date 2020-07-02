@@ -28,9 +28,21 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       transport = host.createTransport();
       // Looks like we need to have at least
       // one observer to be able to use transport
-      transport.isPlaying().addValueObserver(newValue ->
-         host.println("isPlaying: " + newValue)
-      );
+      transport.isPlaying().addValueObserver(newValue -> {
+         if (isInProgrammersMode) {
+            if (newValue) {
+               pulseTransportButtons();
+            } else {
+               showTransportButtons();
+            }
+         }
+      });
+
+      transport.isArrangerLoopEnabled().addValueObserver(newValue -> {
+         if (isInProgrammersMode) {
+            toggleLoopButton();
+         }
+      });
 
       sessionMidiIn = host.getMidiInPort(0);
       sessionMidiIn.setMidiCallback((statusByte, midiNote, pressStateData) -> {
@@ -83,28 +95,50 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       if (pressState == PressState.down) {
          if (midiNoteData == 19) {
             getHost().println("play");
-
             if (transport.isPlaying().get()) {
                transport.stop();
-               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+               showTransportButtons();
             } else {
                transport.play();
-               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
-               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+               pulseTransportButtons();
             }
          } else if (midiNoteData == 29) {
             getHost().println("record");
             if (transport.isPlaying().get()) {
                transport.stop();
-               setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-               setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+               showTransportButtons();
             } else {
                transport.record();
-               setFlashingColor(sessionMidiOut, Pads.pad(8,6), 0x0D);
-               setFlashingColor(sessionMidiOut, Pads.pad(8,7), 0x0D);
+               pulseTransportButtons();
             }
+         } else if (midiNoteData == 39) {
+            transport.isArrangerLoopEnabled().toggle();
          }
+      }
+   }
+
+   private void showTransportButtons() {
+      toggleLoopButton();
+      setStaticColor(sessionMidiOut, Pad.pad(8, 6), 0x05);
+      setStaticColor(sessionMidiOut, Pad.pad(8, 7), 0x7A);
+   }
+
+   private void pulseTransportButtons() {
+      setFlashingColor(sessionMidiOut, Pad.pad(8, 6), 0x0D);
+      setFlashingColor(sessionMidiOut, Pad.pad(8, 7), 0x0D);
+   }
+
+   private void hideTransportButtons() {
+      setNoColor(sessionMidiOut, Pad.pad(8,5));
+      setNoColor(sessionMidiOut, Pad.pad(8,6));
+      setNoColor(sessionMidiOut, Pad.pad(8,7));
+   }
+
+   private void toggleLoopButton() {
+      if (transport.isArrangerLoopEnabled().get()) {
+         setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2D);
+      } else {
+         setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2F);
       }
    }
 
@@ -125,8 +159,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
       if (page == Page.session) {
          getHost().println("Reset colors");
-         setNoColor(sessionMidiOut, Pads.pad(8,6));
-         setNoColor(sessionMidiOut, Pads.pad(8,7));
+         hideTransportButtons();
       }
 
       isInProgrammersMode = false;
@@ -142,8 +175,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.PROGRAMMERS_LAYOUT);
       sessionMidiOut.sendSysex(Sysex.LIVE_MODE_ON);
 
-      setStaticColor(sessionMidiOut, Pads.pad(8,6), 0x05);
-      setStaticColor(sessionMidiOut, Pads.pad(8,7), 0x7A);
+      if (transport.isPlaying().get()) {
+         pulseTransportButtons();
+      } else {
+         showTransportButtons();
+      }
 
       isInProgrammersMode = true;
    }
