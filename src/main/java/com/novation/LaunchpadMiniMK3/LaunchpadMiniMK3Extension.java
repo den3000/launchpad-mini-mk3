@@ -20,10 +20,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
    TransportPage transportPage;
    TransportHal transportHal;
-   Pad padClick = new Pad(8,5);
-   Pad padLoop = new Pad(8,6);
-   Pad padRec = new Pad(8,7);
-   Pad padPlay = new Pad(8,8);
+
+   Pad padClick = Pad.controlPad(Pad.PadType.click);
+   Pad padLoop = Pad.controlPad(Pad.PadType.loop);
+   Pad padRec = Pad.controlPad(Pad.PadType.rec);
+   Pad padPlay = Pad.controlPad(Pad.PadType.play);
 
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
