@@ -26,6 +26,15 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    Pad padRec = Pad.controlPad(Pad.PadType.rec);
    Pad padPlay = Pad.controlPad(Pad.PadType.play);
 
+   Pad padClickPlus_0_1 = Pad.regularPad(5,8);
+   Pad padClickPlus_1 = Pad.regularPad(6,8);
+   Pad padClickPlus_5 = Pad.regularPad(7,8);
+   Pad padClickPlus_10 = Pad.regularPad(8,8);
+   Pad padClickMinus_0_1 = Pad.regularPad(4,8);
+   Pad padClickMinus_1 = Pad.regularPad(3,8);
+   Pad padClickMinus_5 = Pad.regularPad(2,8);
+   Pad padClickMinus_10 = Pad.regularPad(1,8);
+
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
 
@@ -146,6 +155,18 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       setStaticColor(sessionMidiOut, padPlay, 0x7A);
    }
 
+   private void showTempoChangeButtons() {
+      setStaticColor(sessionMidiOut, padClickPlus_0_1, 0x7A);
+      setStaticColor(sessionMidiOut, padClickPlus_1, 0x7A);
+      setStaticColor(sessionMidiOut, padClickPlus_5, 0x7A);
+      setStaticColor(sessionMidiOut, padClickPlus_10, 0x7A);
+
+      setStaticColor(sessionMidiOut, padClickMinus_0_1, 0x7A);
+      setStaticColor(sessionMidiOut, padClickMinus_1, 0x7A);
+      setStaticColor(sessionMidiOut, padClickMinus_5, 0x7A);
+      setStaticColor(sessionMidiOut, padClickMinus_10, 0x7A);
+   }
+
    private void pulseTransportButtons() {
       setFlashingColor(sessionMidiOut, padRec, 0x0D);
       setFlashingColor(sessionMidiOut, padPlay, 0x0D);
@@ -156,6 +177,18 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       setNoColor(sessionMidiOut, padLoop);
       setNoColor(sessionMidiOut, padRec);
       setNoColor(sessionMidiOut, padPlay);
+   }
+
+   private void hideTempoChangeButtons() {
+      setNoColor(sessionMidiOut, padClickPlus_0_1);
+      setNoColor(sessionMidiOut, padClickPlus_1);
+      setNoColor(sessionMidiOut, padClickPlus_5);
+      setNoColor(sessionMidiOut, padClickPlus_10);
+
+      setNoColor(sessionMidiOut, padClickMinus_0_1);
+      setNoColor(sessionMidiOut, padClickMinus_1);
+      setNoColor(sessionMidiOut, padClickMinus_5);
+      setNoColor(sessionMidiOut, padClickMinus_10);
    }
 
    private void toggleLoopButton() {
@@ -184,6 +217,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       if (pageType == PageType.session) {
          getHost().println("Reset colors");
          hideTransportButtons();
+         hideTempoChangeButtons();
       }
 
       isInProgrammersMode = false;
@@ -204,6 +238,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       } else {
          showTransportButtons();
       }
+      showTempoChangeButtons();
 
       isInProgrammersMode = true;
    }

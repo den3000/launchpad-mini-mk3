@@ -94,7 +94,8 @@ public class Pad {
     }
 
     public static Pad regularPad(int x, int y) {
-        return new Pad(x, y+1);
+        if ((x < 1 || x > 8) || (y < 1 || y > 8)) return null;
+        return new Pad(x-1, y);
     }
 
     static class RawPosition {
