@@ -47,6 +47,12 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          }
       });
 
+      transport.isMetronomeEnabled().addValueObserver(newValue -> {
+         if (isInProgrammersMode) {
+            toggleMetronomeButton();
+         }
+      });
+
       transport.isArrangerLoopEnabled().addValueObserver(newValue -> {
          if (isInProgrammersMode) {
             toggleLoopButton();
@@ -122,12 +128,15 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
             }
          } else if (midiNoteData == 39) {
             transport.isArrangerLoopEnabled().toggle();
+         } else if (midiNoteData == 49) {
+            transport.isMetronomeEnabled().toggle();
          }
       }
    }
 
    private void showTransportButtons() {
       toggleLoopButton();
+      toggleMetronomeButton();
       setStaticColor(sessionMidiOut, Pad.pad(8, 6), 0x05);
       setStaticColor(sessionMidiOut, Pad.pad(8, 7), 0x7A);
    }
@@ -148,6 +157,14 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2D);
       } else {
          setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2F);
+      }
+   }
+
+   private void toggleMetronomeButton() {
+      if (transport.isMetronomeEnabled().get()) {
+         setStaticColor(sessionMidiOut, Pad.pad(8, 4), 0x39);
+      } else {
+         setStaticColor(sessionMidiOut, Pad.pad(8, 4), 0x37);
       }
    }
 
