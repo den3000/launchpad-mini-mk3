@@ -16,11 +16,11 @@ public class Pad {
 
     RawPosition raw;
 
-    private Pad(int x, int y) {
+    public Pad(int x, int y) {
         raw = new RawPosition(x, y);
     }
 
-    int note() {
+    public int note() {
         return Pad.raw(raw.x, raw.y);
     }
 
