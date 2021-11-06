@@ -2,6 +2,11 @@ package com.novation.LaunchpadMiniMK3;
 
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
+import com.novation.arch.PageType;
+import com.novation.hal.Pad;
+import com.novation.hal.PressState;
+import com.novation.hal.Sysex;
+import com.novation.hal.TopRow;
 
 public class LaunchpadMiniMK3Extension extends ControllerExtension
 {
@@ -12,7 +17,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    MidiIn defaultModeMidiIn;
    NoteInput customModesNoteInput;
 
-   Page current = Page.session;
+   PageType current = PageType.session;
    boolean isInProgrammersMode = false;
 
    protected LaunchpadMiniMK3Extension(final LaunchpadMiniMK3ExtensionDefinition definition, final ControllerHost host)
@@ -142,7 +147,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       }
    }
 
-   private void switchToDawMode(Page page) {
+   private void switchToDawMode(PageType pageType) {
       getHost().println("switchToDawMode");
       // Set to DAW mode
       sessionMidiOut.sendSysex(Sysex.SET_DAW_MODE);
@@ -150,14 +155,14 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       sessionMidiOut.sendSysex(Sysex.CLEAR_DAW_MODE);
 
       // Swap to necessary layout
-      switch (page) {
+      switch (pageType) {
          case session: sessionMidiOut.sendSysex(Sysex.SESSION_LAYOUT); break;
          case userDrums: sessionMidiOut.sendSysex(Sysex.SESSION_DRUMS); break;
          case userKeys: sessionMidiOut.sendSysex(Sysex.SESSION_KEYS); break;
          case user: sessionMidiOut.sendSysex(Sysex.SESSION_USER); break;
       }
 
-      if (page == Page.session) {
+      if (pageType == PageType.session) {
          getHost().println("Reset colors");
          hideTransportButtons();
       }
@@ -191,18 +196,18 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          getHost().println("Layout:" + topRow.toString() + String.format(" sessionMidiIn midi: %d %d", midiNoteData, pressStateData));
 
          if (!isInProgrammersMode
-                 && (topRow == TopRow.drums && current == Page.userDrums
-                 || topRow == TopRow.keys && current == Page.userKeys
-                 || topRow == TopRow.user && current == Page.user)) {
+                 && (topRow == TopRow.drums && current == PageType.userDrums
+                 || topRow == TopRow.keys && current == PageType.userKeys
+                 || topRow == TopRow.user && current == PageType.user)) {
             switchToProgrammersMode();
-            current = Page.custom;
+            current = PageType.custom;
             return;
          }
 
-         if (topRow == TopRow.session) { current = Page.session; }
-         else if (topRow == TopRow.drums) { current = Page.userDrums; }
-         else if (topRow == TopRow.keys) { current = Page.userKeys; }
-         else if (topRow == TopRow.user) { current = Page.user; }
+         if (topRow == TopRow.session) { current = PageType.session; }
+         else if (topRow == TopRow.drums) { current = PageType.userDrums; }
+         else if (topRow == TopRow.keys) { current = PageType.userKeys; }
+         else if (topRow == TopRow.user) { current = PageType.user; }
 
          getHost().println("Selected page: " + current.toString() );
          if (isInProgrammersMode && (topRow == TopRow.drums ||

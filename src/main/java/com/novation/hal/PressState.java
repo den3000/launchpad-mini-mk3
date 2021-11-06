@@ -1,9 +1,9 @@
-package com.novation.LaunchpadMiniMK3;
+package com.novation.hal;
 
 public enum PressState {
     unknown(-1), up(0), down(127);
 
-    static PressState from(Integer value) {
+    public static PressState from(Integer value) {
         if (value == up.getValue()) {
             return up;
         } else if (value == down.getValue()) {
