@@ -20,6 +20,10 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
    TransportPage transportPage;
    TransportHal transportHal;
+   Pad padClick = new Pad(8,5);
+   Pad padLoop = new Pad(8,6);
+   Pad padRec = new Pad(8,7);
+   Pad padPlay = new Pad(8,8);
 
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
@@ -49,7 +53,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
       transport.isMetronomeEnabled().addValueObserver(newValue -> {
          if (isInProgrammersMode) {
-            toggleMetronomeButton();
+            toggleClickButton();
          }
       });
 
@@ -108,7 +112,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    private void executeCustomAction(int midiNoteData, int pressStateData) {
       PressState pressState = PressState.from(pressStateData);
       if (pressState == PressState.down) {
-         if (midiNoteData == 19) {
+         if (midiNoteData == padPlay.note()) {
             getHost().println("play");
             if (transport.isPlaying().get()) {
                transport.stop();
@@ -117,7 +121,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
                transport.play();
                pulseTransportButtons();
             }
-         } else if (midiNoteData == 29) {
+         } else if (midiNoteData == padRec.note()) {
             getHost().println("record");
             if (transport.isPlaying().get()) {
                transport.stop();
@@ -126,9 +130,9 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
                transport.record();
                pulseTransportButtons();
             }
-         } else if (midiNoteData == 39) {
+         } else if (midiNoteData == padLoop.note()) {
             transport.isArrangerLoopEnabled().toggle();
-         } else if (midiNoteData == 49) {
+         } else if (midiNoteData == padClick.note()) {
             transport.isMetronomeEnabled().toggle();
          }
       }
@@ -136,36 +140,29 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
    private void showTransportButtons() {
       toggleLoopButton();
-      toggleMetronomeButton();
-      setStaticColor(sessionMidiOut, Pad.pad(8, 6), 0x05);
-      setStaticColor(sessionMidiOut, Pad.pad(8, 7), 0x7A);
+      toggleClickButton();
+      setStaticColor(sessionMidiOut, padRec.note(), 0x05);
+      setStaticColor(sessionMidiOut, padPlay.note(), 0x7A);
    }
 
    private void pulseTransportButtons() {
-      setFlashingColor(sessionMidiOut, Pad.pad(8, 6), 0x0D);
-      setFlashingColor(sessionMidiOut, Pad.pad(8, 7), 0x0D);
+      setFlashingColor(sessionMidiOut, padRec.note(), 0x0D);
+      setFlashingColor(sessionMidiOut, padPlay.note(), 0x0D);
    }
 
    private void hideTransportButtons() {
-      setNoColor(sessionMidiOut, Pad.pad(8,5));
-      setNoColor(sessionMidiOut, Pad.pad(8,6));
-      setNoColor(sessionMidiOut, Pad.pad(8,7));
+      setNoColor(sessionMidiOut, padClick.note());
+      setNoColor(sessionMidiOut, padLoop.note());
+      setNoColor(sessionMidiOut, padRec.note());
+      setNoColor(sessionMidiOut, padPlay.note());
    }
 
    private void toggleLoopButton() {
-      if (transport.isArrangerLoopEnabled().get()) {
-         setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2D);
-      } else {
-         setStaticColor(sessionMidiOut, Pad.pad(8, 5), 0x2F);
-      }
+      setStaticColor(sessionMidiOut, padLoop.note(), transport.isArrangerLoopEnabled().get() ? 0x2D : 0x2F);
    }
 
-   private void toggleMetronomeButton() {
-      if (transport.isMetronomeEnabled().get()) {
-         setStaticColor(sessionMidiOut, Pad.pad(8, 4), 0x39);
-      } else {
-         setStaticColor(sessionMidiOut, Pad.pad(8, 4), 0x37);
-      }
+   private void toggleClickButton() {
+      setStaticColor(sessionMidiOut, padClick.note(), transport.isMetronomeEnabled().get() ? 0x39 : 0x37);
    }
 
    private void switchToDawMode(PageType pageType) {
