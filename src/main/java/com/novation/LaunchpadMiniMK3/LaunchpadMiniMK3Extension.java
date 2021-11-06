@@ -3,6 +3,7 @@ package com.novation.LaunchpadMiniMK3;
 import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
 import com.novation.arch.PageType;
+import com.novation.arch.TransportPage;
 import com.novation.hal.Pad;
 import com.novation.hal.PressState;
 import com.novation.hal.Sysex;
@@ -16,6 +17,9 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    
    MidiIn defaultModeMidiIn;
    NoteInput customModesNoteInput;
+
+   TransportPage transportPage;
+   TransportHal transportHal;
 
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
