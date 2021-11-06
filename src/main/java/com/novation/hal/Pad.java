@@ -51,7 +51,7 @@ public class Pad {
         return raw.x == 8;
     }
 
-    boolean isControl() {
+    public boolean isControl() {
         return isTopControl() || isRightControl();
     }
 

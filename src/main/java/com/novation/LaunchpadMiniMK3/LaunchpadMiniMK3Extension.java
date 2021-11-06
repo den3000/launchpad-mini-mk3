@@ -142,28 +142,28 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    private void showTransportButtons() {
       toggleLoopButton();
       toggleClickButton();
-      setStaticColor(sessionMidiOut, padRec.note(), 0x05);
-      setStaticColor(sessionMidiOut, padPlay.note(), 0x7A);
+      setStaticColor(sessionMidiOut, padRec, 0x05);
+      setStaticColor(sessionMidiOut, padPlay, 0x7A);
    }
 
    private void pulseTransportButtons() {
-      setFlashingColor(sessionMidiOut, padRec.note(), 0x0D);
-      setFlashingColor(sessionMidiOut, padPlay.note(), 0x0D);
+      setFlashingColor(sessionMidiOut, padRec, 0x0D);
+      setFlashingColor(sessionMidiOut, padPlay, 0x0D);
    }
 
    private void hideTransportButtons() {
-      setNoColor(sessionMidiOut, padClick.note());
-      setNoColor(sessionMidiOut, padLoop.note());
-      setNoColor(sessionMidiOut, padRec.note());
-      setNoColor(sessionMidiOut, padPlay.note());
+      setNoColor(sessionMidiOut, padClick);
+      setNoColor(sessionMidiOut, padLoop);
+      setNoColor(sessionMidiOut, padRec);
+      setNoColor(sessionMidiOut, padPlay);
    }
 
    private void toggleLoopButton() {
-      setStaticColor(sessionMidiOut, padLoop.note(), transport.isArrangerLoopEnabled().get() ? 0x2D : 0x2F);
+      setStaticColor(sessionMidiOut, padLoop, transport.isArrangerLoopEnabled().get() ? 0x2D : 0x2F);
    }
 
    private void toggleClickButton() {
-      setStaticColor(sessionMidiOut, padClick.note(), transport.isMetronomeEnabled().get() ? 0x39 : 0x37);
+      setStaticColor(sessionMidiOut, padClick, transport.isMetronomeEnabled().get() ? 0x39 : 0x37);
    }
 
    private void switchToDawMode(PageType pageType) {
@@ -267,23 +267,23 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       // TODO Send any updates you need here.
    }
 
-   static void setStaticColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB0, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x90, padNum, colorPalletIndex);
+   static void setStaticColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB0 : 0x90, pad.note(), colorPalletIndex);
    }
 
-   static void setFlashingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB1, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x91, padNum, colorPalletIndex);
+   static void setFlashingColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB1 : 0x91, pad.note(), colorPalletIndex);
    }
 
-   static void setPulsingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB2, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x92, padNum, colorPalletIndex);
+   static void setPulsingColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB2 : 0x92, pad.note(), colorPalletIndex);
    }
 
-   static void setNoColor(MidiOut midiOut, int padNum) {
-         midiOut.sendMidi(0xB0, padNum, 0x00);
-//         midiOut.sendMidi(0x80, padNum, 0x00);
+   static void setNoColor(MidiOut midiOut, Pad pad) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB0 : 0x90, pad.note(), 0x00);
    }
 }
