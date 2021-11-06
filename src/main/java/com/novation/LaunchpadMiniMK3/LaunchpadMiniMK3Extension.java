@@ -156,15 +156,15 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    }
 
    private void showTempoChangeButtons() {
-      setStaticColor(sessionMidiOut, padClickPlus_0_1, 0x7A);
-      setStaticColor(sessionMidiOut, padClickPlus_1, 0x7A);
-      setStaticColor(sessionMidiOut, padClickPlus_5, 0x7A);
-      setStaticColor(sessionMidiOut, padClickPlus_10, 0x7A);
+      setStaticColor(sessionMidiOut, padClickPlus_0_1, 0x14);
+      setStaticColor(sessionMidiOut, padClickPlus_1, 0x15);
+      setStaticColor(sessionMidiOut, padClickPlus_5, 0x16);
+      setStaticColor(sessionMidiOut, padClickPlus_10, 0x17);
 
-      setStaticColor(sessionMidiOut, padClickMinus_0_1, 0x7A);
-      setStaticColor(sessionMidiOut, padClickMinus_1, 0x7A);
-      setStaticColor(sessionMidiOut, padClickMinus_5, 0x7A);
-      setStaticColor(sessionMidiOut, padClickMinus_10, 0x7A);
+      setStaticColor(sessionMidiOut, padClickMinus_0_1, 0x14);
+      setStaticColor(sessionMidiOut, padClickMinus_1, 0x15);
+      setStaticColor(sessionMidiOut, padClickMinus_5, 0x16);
+      setStaticColor(sessionMidiOut, padClickMinus_10, 0x17);
    }
 
    private void pulseTransportButtons() {
