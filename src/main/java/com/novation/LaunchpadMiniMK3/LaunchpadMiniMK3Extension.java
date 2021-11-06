@@ -4,14 +4,15 @@ import com.bitwig.extension.controller.ControllerExtension;
 import com.bitwig.extension.controller.api.*;
 import com.novation.arch.PageType;
 import com.novation.arch.TransportPage;
-import com.novation.hal.Pad;
-import com.novation.hal.PressState;
-import com.novation.hal.Sysex;
-import com.novation.hal.TopRow;
+import com.novation.hal.*;
+
+import java.util.ArrayList;
 
 public class LaunchpadMiniMK3Extension extends ControllerExtension
 {
    Transport transport;
+   Application app;
+
    MidiIn sessionMidiIn;
    MidiOut sessionMidiOut;
    
@@ -20,10 +21,31 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
 
    TransportPage transportPage;
    TransportHal transportHal;
-   Pad padClick = new Pad(8,5);
-   Pad padLoop = new Pad(8,6);
-   Pad padRec = new Pad(8,7);
-   Pad padPlay = new Pad(8,8);
+
+   Pad padClick = Pad.controlPad(Pad.PadType.click);
+   Pad padLoop = Pad.controlPad(Pad.PadType.loop);
+   Pad padRec = Pad.controlPad(Pad.PadType.rec);
+   Pad padPlay = Pad.controlPad(Pad.PadType.play);
+
+   Pad padClickPlus_0_1 = Pad.regularPad(5,8);
+   Pad padClickPlus_1 = Pad.regularPad(6,8);
+   Pad padClickPlus_5 = Pad.regularPad(7,8);
+   Pad padClickPlus_10 = Pad.regularPad(8,8);
+   Pad padClickMinus_0_1 = Pad.regularPad(4,8);
+   Pad padClickMinus_1 = Pad.regularPad(3,8);
+   Pad padClickMinus_5 = Pad.regularPad(2,8);
+   Pad padClickMinus_10 = Pad.regularPad(1,8);
+   ArrayList<Integer> tempoChangeNotes = new ArrayList<Integer>();
+
+   Pad padTapTempo = Pad.regularPad(1,7);
+   Pad padUndo = Pad.regularPad(2,7);
+   Pad padRedo = Pad.regularPad(3,7);
+   Pad padClickPreroll = Pad.regularPad(4,7);
+   Pad padNoPreroll = Pad.regularPad(5,7);
+   Pad padOneBarPreroll = Pad.regularPad(6,7);
+   Pad padTwoBarsPreroll = Pad.regularPad(7,7);
+   Pad padFourBarsPreroll = Pad.regularPad(8,7);
+   ArrayList<Integer> utilitiesNotes = new ArrayList<Integer>();
 
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
@@ -37,6 +59,25 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    public void init()
    {
       final ControllerHost host = getHost();      
+      app = host.createApplication();
+
+      tempoChangeNotes.add(padClickMinus_10.note());
+      tempoChangeNotes.add(padClickMinus_5.note());
+      tempoChangeNotes.add(padClickMinus_1.note());
+      tempoChangeNotes.add(padClickMinus_0_1.note());
+      tempoChangeNotes.add(padClickPlus_0_1.note());
+      tempoChangeNotes.add(padClickPlus_1.note());
+      tempoChangeNotes.add(padClickPlus_5.note());
+      tempoChangeNotes.add(padClickPlus_10.note());
+
+      utilitiesNotes.add(padTapTempo.note());
+      utilitiesNotes.add(padUndo.note());
+      utilitiesNotes.add(padRedo.note());
+      utilitiesNotes.add(padClickPreroll.note());
+      utilitiesNotes.add(padNoPreroll.note());
+      utilitiesNotes.add(padOneBarPreroll.note());
+      utilitiesNotes.add(padTwoBarsPreroll.note());
+      utilitiesNotes.add(padFourBarsPreroll.note());
 
       transport = host.createTransport();
       // Looks like we need to have at least
@@ -60,6 +101,23 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       transport.isArrangerLoopEnabled().addValueObserver(newValue -> {
          if (isInProgrammersMode) {
             toggleLoopButton();
+         }
+      });
+
+      transport.tempo().value().addValueObserver(value -> {
+         double tempoInBpm = value * 646 + 20;
+         getHost().println(String.format("tempoValue: %f bpm: %f", value, tempoInBpm));
+      });
+
+      transport.preRoll().addValueObserver(s -> {
+         if (isInProgrammersMode) {
+            updatePrerollButtonsColors(PrerollType.from(s));
+         }
+      });
+
+      transport.isMetronomeAudibleDuringPreRoll().addValueObserver(state -> {
+         if (isInProgrammersMode) {
+            updatePrerollClickButtonColor(state);
          }
       });
 
@@ -105,6 +163,41 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       host.println("Launchpad Mini MK3 Initialized");
    }
 
+   private void updatePrerollClickButtonColor(boolean state) {
+      setStaticColor(sessionMidiOut, padClickPreroll, state ? 0x09 : 0x0B);
+   }
+
+   private void updatePrerollButtonsColors(PrerollType prerollType) {
+      switch (prerollType) {
+         case none:
+            setStaticColor(sessionMidiOut, padNoPreroll, 0x09);
+            setStaticColor(sessionMidiOut, padOneBarPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padTwoBarsPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padFourBarsPreroll, 0x0B);
+            break;
+         case oneBar:
+            setStaticColor(sessionMidiOut, padNoPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padOneBarPreroll, 0x09);
+            setStaticColor(sessionMidiOut, padTwoBarsPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padFourBarsPreroll, 0x0B);
+            break;
+         case twoBars:
+            setStaticColor(sessionMidiOut, padNoPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padOneBarPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padTwoBarsPreroll, 0x09);
+            setStaticColor(sessionMidiOut, padFourBarsPreroll, 0x0B);
+            break;
+         case fourBars:
+            setStaticColor(sessionMidiOut, padNoPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padOneBarPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padTwoBarsPreroll, 0x0B);
+            setStaticColor(sessionMidiOut, padFourBarsPreroll, 0x09);
+            break;
+         default:
+            break;
+      }
+   }
+
    private void executeSessionAction(int data1, int data2) {
 
    }
@@ -134,35 +227,140 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
             transport.isArrangerLoopEnabled().toggle();
          } else if (midiNoteData == padClick.note()) {
             transport.isMetronomeEnabled().toggle();
+         } else if (tempoChangeNotes.contains(midiNoteData)){
+            processTempoChange(midiNoteData);
+         } else if (utilitiesNotes.contains(midiNoteData)){
+            processUtilities(midiNoteData);
          }
+      }
+   }
+
+   private void processUtilities(int midiNoteData) {
+      if (midiNoteData == padTapTempo.note()) {
+         transport.tapTempo();
+      } else if (midiNoteData == padUndo.note()) {
+         app.undo();
+      } else if (midiNoteData == padRedo.note()) {
+         app.redo();
+      } else if (midiNoteData == padClickPreroll.note()) {
+         transport.isMetronomeAudibleDuringPreRoll().toggle();
+      } else if (midiNoteData == padNoPreroll.note()) {
+         transport.preRoll().set(PrerollType.none.getValue());
+      } else if (midiNoteData == padOneBarPreroll.note()) {
+         transport.preRoll().set(PrerollType.oneBar.getValue());
+      } else if (midiNoteData == padTwoBarsPreroll.note()) {
+         transport.preRoll().set(PrerollType.twoBars.getValue());
+      } else if (midiNoteData == padFourBarsPreroll.note()) {
+         transport.preRoll().set(PrerollType.fourBars.getValue());
+      }
+   }
+
+   private void processTempoChange(int midiNoteData) {
+      /*
+      20 bpm - 0
+      0.1 bpm - 0.00015
+      666 bpm - 1.0
+      */
+
+      double currentTempo = transport.tempo().get();
+      double currentBpm = currentTempo * 646 + 20;
+      double newBpm = currentBpm;
+
+      // TODO: this if else is horrible
+      if (midiNoteData == padClickMinus_10.note()) {
+         newBpm = currentBpm - 10;
+      } else if (midiNoteData == padClickMinus_5.note()) {
+         newBpm = currentBpm - 5;
+      } else if (midiNoteData == padClickMinus_1.note()) {
+         newBpm = currentBpm - 1;
+      } else if (midiNoteData == padClickMinus_0_1.note()) {
+         newBpm = currentBpm - 0.1;
+      } else if (midiNoteData == padClickPlus_0_1.note()) {
+         newBpm = currentBpm + 0.1;
+      } else if (midiNoteData == padClickPlus_1.note()) {
+         newBpm = currentBpm + 1;
+      } else if (midiNoteData == padClickPlus_5.note()) {
+         newBpm = currentBpm + 5;
+      } else if (midiNoteData == padClickPlus_10.note()) {
+         newBpm = currentBpm + 10;
+      }
+
+      double newTempo = (newBpm - 20) / 646;
+      if (newTempo > 0 && newTempo < 1.0) {
+         transport.tempo().set(newTempo);
       }
    }
 
    private void showTransportButtons() {
       toggleLoopButton();
       toggleClickButton();
-      setStaticColor(sessionMidiOut, padRec.note(), 0x05);
-      setStaticColor(sessionMidiOut, padPlay.note(), 0x7A);
+      setStaticColor(sessionMidiOut, padRec, 0x05);
+      setStaticColor(sessionMidiOut, padPlay, 0x7A);
+   }
+
+   private void showTempoChangeButtons() {
+      setStaticColor(sessionMidiOut, padClickPlus_0_1, 0x14);
+      setStaticColor(sessionMidiOut, padClickPlus_1, 0x15);
+      setStaticColor(sessionMidiOut, padClickPlus_5, 0x16);
+      setStaticColor(sessionMidiOut, padClickPlus_10, 0x17);
+
+      setStaticColor(sessionMidiOut, padClickMinus_0_1, 0x14);
+      setStaticColor(sessionMidiOut, padClickMinus_1, 0x15);
+      setStaticColor(sessionMidiOut, padClickMinus_5, 0x16);
+      setStaticColor(sessionMidiOut, padClickMinus_10, 0x17);
+   }
+
+   private void showUtilitiesButtons() {
+      setStaticColor(sessionMidiOut, padTapTempo, 0x38);
+      setStaticColor(sessionMidiOut, padUndo, 0x0D);
+      setStaticColor(sessionMidiOut, padRedo, 0x0E);
+
+      updatePrerollClickButtonColor(transport.isMetronomeAudibleDuringPreRoll().get());
+      updatePrerollButtonsColors(PrerollType.from(transport.preRoll().get()));
    }
 
    private void pulseTransportButtons() {
-      setFlashingColor(sessionMidiOut, padRec.note(), 0x0D);
-      setFlashingColor(sessionMidiOut, padPlay.note(), 0x0D);
+      setFlashingColor(sessionMidiOut, padRec, 0x0D);
+      setFlashingColor(sessionMidiOut, padPlay, 0x0D);
    }
 
    private void hideTransportButtons() {
-      setNoColor(sessionMidiOut, padClick.note());
-      setNoColor(sessionMidiOut, padLoop.note());
-      setNoColor(sessionMidiOut, padRec.note());
-      setNoColor(sessionMidiOut, padPlay.note());
+      setNoColor(sessionMidiOut, padClick);
+      setNoColor(sessionMidiOut, padLoop);
+      setNoColor(sessionMidiOut, padRec);
+      setNoColor(sessionMidiOut, padPlay);
+   }
+
+   private void hideTempoChangeButtons() {
+      setNoColor(sessionMidiOut, padClickPlus_0_1);
+      setNoColor(sessionMidiOut, padClickPlus_1);
+      setNoColor(sessionMidiOut, padClickPlus_5);
+      setNoColor(sessionMidiOut, padClickPlus_10);
+
+      setNoColor(sessionMidiOut, padClickMinus_0_1);
+      setNoColor(sessionMidiOut, padClickMinus_1);
+      setNoColor(sessionMidiOut, padClickMinus_5);
+      setNoColor(sessionMidiOut, padClickMinus_10);
+   }
+
+   private void hideUtilitiesButtons() {
+      setNoColor(sessionMidiOut, padTapTempo);
+      setNoColor(sessionMidiOut, padUndo);
+      setNoColor(sessionMidiOut, padRedo);
+      setNoColor(sessionMidiOut, padClickPreroll);
+
+      setNoColor(sessionMidiOut, padNoPreroll);
+      setNoColor(sessionMidiOut, padOneBarPreroll);
+      setNoColor(sessionMidiOut, padTwoBarsPreroll);
+      setNoColor(sessionMidiOut, padFourBarsPreroll);
    }
 
    private void toggleLoopButton() {
-      setStaticColor(sessionMidiOut, padLoop.note(), transport.isArrangerLoopEnabled().get() ? 0x2D : 0x2F);
+      setStaticColor(sessionMidiOut, padLoop, transport.isArrangerLoopEnabled().get() ? 0x2D : 0x2F);
    }
 
    private void toggleClickButton() {
-      setStaticColor(sessionMidiOut, padClick.note(), transport.isMetronomeEnabled().get() ? 0x39 : 0x37);
+      setStaticColor(sessionMidiOut, padClick, transport.isMetronomeEnabled().get() ? 0x39 : 0x37);
    }
 
    private void switchToDawMode(PageType pageType) {
@@ -183,6 +381,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       if (pageType == PageType.session) {
          getHost().println("Reset colors");
          hideTransportButtons();
+         hideTempoChangeButtons();
+         hideUtilitiesButtons();
       }
 
       isInProgrammersMode = false;
@@ -203,6 +403,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       } else {
          showTransportButtons();
       }
+      showTempoChangeButtons();
+      showUtilitiesButtons();
 
       isInProgrammersMode = true;
    }
@@ -266,23 +468,23 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       // TODO Send any updates you need here.
    }
 
-   static void setStaticColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB0, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x90, padNum, colorPalletIndex);
+   static void setStaticColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB0 : 0x90, pad.note(), colorPalletIndex);
    }
 
-   static void setFlashingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB1, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x91, padNum, colorPalletIndex);
+   static void setFlashingColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB1 : 0x91, pad.note(), colorPalletIndex);
    }
 
-   static void setPulsingColor(MidiOut midiOut, int padNum, int colorPalletIndex) {
-         midiOut.sendMidi(0xB2, padNum, colorPalletIndex);
-//         midiOut.sendMidi(0x92, padNum, colorPalletIndex);
+   static void setPulsingColor(MidiOut midiOut, Pad pad, int colorPalletIndex) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB2 : 0x92, pad.note(), colorPalletIndex);
    }
 
-   static void setNoColor(MidiOut midiOut, int padNum) {
-         midiOut.sendMidi(0xB0, padNum, 0x00);
-//         midiOut.sendMidi(0x80, padNum, 0x00);
+   static void setNoColor(MidiOut midiOut, Pad pad) {
+      // if pad is control then send as CC else send as NOTE
+      midiOut.sendMidi(pad.isControl() ? 0xB0 : 0x90, pad.note(), 0x00);
    }
 }
