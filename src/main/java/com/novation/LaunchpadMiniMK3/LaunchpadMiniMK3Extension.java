@@ -14,6 +14,8 @@ import java.util.ArrayList;
 public class LaunchpadMiniMK3Extension extends ControllerExtension
 {
    Transport transport;
+   Application app;
+
    MidiIn sessionMidiIn;
    MidiOut sessionMidiOut;
    
@@ -38,6 +40,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    Pad padClickMinus_10 = Pad.regularPad(1,8);
    ArrayList<Integer> tempoChangeNotes = new ArrayList<Integer>();
 
+   Pad padTapTempo = Pad.regularPad(1,7);
+
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
 
@@ -50,6 +54,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    public void init()
    {
       final ControllerHost host = getHost();      
+      app = host.createApplication();
 
       tempoChangeNotes.add(padClickMinus_10.note());
       tempoChangeNotes.add(padClickMinus_5.note());
@@ -59,6 +64,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       tempoChangeNotes.add(padClickPlus_1.note());
       tempoChangeNotes.add(padClickPlus_5.note());
       tempoChangeNotes.add(padClickPlus_10.note());
+      tempoChangeNotes.add(padTapTempo.note());
 
       transport = host.createTransport();
       // Looks like we need to have at least
@@ -168,7 +174,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    }
 
    private void processTempoChange(int midiNoteData) {
-      // TODO: this if else is horrible
+      if (midiNoteData == padTapTempo.note()) {
+         transport.tapTempo();
+         return;
+      }
+
       /*
       20 bpm - 0
       0.1 bpm - 0.00015
@@ -179,6 +189,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       double currentBpm = currentTempo * 646 + 20;
       double newBpm = currentBpm;
 
+      // TODO: this if else is horrible
       if (midiNoteData == padClickMinus_10.note()) {
          newBpm = currentBpm - 10;
       } else if (midiNoteData == padClickMinus_5.note()) {
@@ -220,6 +231,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       setStaticColor(sessionMidiOut, padClickMinus_1, 0x15);
       setStaticColor(sessionMidiOut, padClickMinus_5, 0x16);
       setStaticColor(sessionMidiOut, padClickMinus_10, 0x17);
+
+      setStaticColor(sessionMidiOut, padTapTempo, 0x17);
    }
 
    private void pulseTransportButtons() {
@@ -244,6 +257,8 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
       setNoColor(sessionMidiOut, padClickMinus_1);
       setNoColor(sessionMidiOut, padClickMinus_5);
       setNoColor(sessionMidiOut, padClickMinus_10);
+
+      setNoColor(sessionMidiOut, padTapTempo);
    }
 
    private void toggleLoopButton() {
@@ -274,6 +289,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          hideTransportButtons();
          hideTempoChangeButtons();
       }
+
 
       isInProgrammersMode = false;
    }

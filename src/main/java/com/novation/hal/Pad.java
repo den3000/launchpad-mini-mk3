@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 public class Pad {
 
+    // TODO: colors should be a part of Pad
+    // TODO: Color mode (static/flashing/pulsing) should be a part of Pad
+
     public enum PadType {
         play,
         rec,
