@@ -9,6 +9,8 @@ import com.novation.hal.PressState;
 import com.novation.hal.Sysex;
 import com.novation.hal.TopRow;
 
+import java.util.ArrayList;
+
 public class LaunchpadMiniMK3Extension extends ControllerExtension
 {
    Transport transport;
@@ -34,6 +36,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    Pad padClickMinus_1 = Pad.regularPad(3,8);
    Pad padClickMinus_5 = Pad.regularPad(2,8);
    Pad padClickMinus_10 = Pad.regularPad(1,8);
+   ArrayList<Integer> tempoChangeNotes = new ArrayList<Integer>();
 
    PageType current = PageType.session;
    boolean isInProgrammersMode = false;
@@ -47,6 +50,15 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    public void init()
    {
       final ControllerHost host = getHost();      
+
+      tempoChangeNotes.add(padClickMinus_10.note());
+      tempoChangeNotes.add(padClickMinus_5.note());
+      tempoChangeNotes.add(padClickMinus_1.note());
+      tempoChangeNotes.add(padClickMinus_0_1.note());
+      tempoChangeNotes.add(padClickPlus_0_1.note());
+      tempoChangeNotes.add(padClickPlus_1.note());
+      tempoChangeNotes.add(padClickPlus_5.note());
+      tempoChangeNotes.add(padClickPlus_10.note());
 
       transport = host.createTransport();
       // Looks like we need to have at least
@@ -71,6 +83,11 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
          if (isInProgrammersMode) {
             toggleLoopButton();
          }
+      });
+
+      transport.tempo().value().addValueObserver(value -> {
+         double tempoInBpm = value * 646 + 20;
+         getHost().println(String.format("tempoValue: %f bpm: %f", value, tempoInBpm));
       });
 
       sessionMidiIn = host.getMidiInPort(0);
@@ -144,7 +161,45 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
             transport.isArrangerLoopEnabled().toggle();
          } else if (midiNoteData == padClick.note()) {
             transport.isMetronomeEnabled().toggle();
+         } else if (tempoChangeNotes.contains(midiNoteData)){
+            processTempoChange(midiNoteData);
          }
+      }
+   }
+
+   private void processTempoChange(int midiNoteData) {
+      // TODO: this if else is horrible
+      /*
+      20 bpm - 0
+      0.1 bpm - 0.00015
+      666 bpm - 1.0
+      */
+
+      double currentTempo = transport.tempo().get();
+      double currentBpm = currentTempo * 646 + 20;
+      double newBpm = currentBpm;
+
+      if (midiNoteData == padClickMinus_10.note()) {
+         newBpm = currentBpm - 10;
+      } else if (midiNoteData == padClickMinus_5.note()) {
+         newBpm = currentBpm - 5;
+      } else if (midiNoteData == padClickMinus_1.note()) {
+         newBpm = currentBpm - 1;
+      } else if (midiNoteData == padClickMinus_0_1.note()) {
+         newBpm = currentBpm - 0.1;
+      } else if (midiNoteData == padClickPlus_0_1.note()) {
+         newBpm = currentBpm + 0.1;
+      } else if (midiNoteData == padClickPlus_1.note()) {
+         newBpm = currentBpm + 1;
+      } else if (midiNoteData == padClickPlus_5.note()) {
+         newBpm = currentBpm + 5;
+      } else if (midiNoteData == padClickPlus_10.note()) {
+         newBpm = currentBpm + 10;
+      }
+
+      double newTempo = (newBpm - 20) / 646;
+      if (newTempo > 0 && newTempo < 1.0) {
+         transport.tempo().set(newTempo);
       }
    }
 

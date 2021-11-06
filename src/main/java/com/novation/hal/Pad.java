@@ -1,5 +1,7 @@
 package com.novation.hal;
 
+import java.util.Arrays;
+
 public class Pad {
 
     public enum PadType {
