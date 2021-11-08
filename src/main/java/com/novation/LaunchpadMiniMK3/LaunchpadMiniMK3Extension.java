@@ -37,14 +37,14 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    Pad padClickMinus_10 = Pad.regularPad(1,8);
    ArrayList<Integer> tempoChangeNotes = new ArrayList<Integer>();
 
-   Pad padTapTempo = Pad.regularPad(1,7);
-   Pad padUndo = Pad.regularPad(2,7);
-   Pad padRedo = Pad.regularPad(3,7);
-   Pad padClickPreroll = Pad.regularPad(4,7);
-   Pad padNoPreroll = Pad.regularPad(5,7);
-   Pad padOneBarPreroll = Pad.regularPad(6,7);
-   Pad padTwoBarsPreroll = Pad.regularPad(7,7);
-   Pad padFourBarsPreroll = Pad.regularPad(8,7);
+   Pad padTapTempo = Pad.regularPad(6,7);
+   Pad padUndo = Pad.regularPad(8,7);
+   Pad padRedo = Pad.regularPad(7,7);
+   Pad padClickPreroll = Pad.regularPad(1,7);
+   Pad padNoPreroll = Pad.regularPad(2,7);
+   Pad padOneBarPreroll = Pad.regularPad(3,7);
+   Pad padTwoBarsPreroll = Pad.regularPad(4,7);
+   Pad padFourBarsPreroll = Pad.regularPad(5,7);
    ArrayList<Integer> utilitiesNotes = new ArrayList<Integer>();
 
    PageType current = PageType.session;
@@ -313,7 +313,7 @@ public class LaunchpadMiniMK3Extension extends ControllerExtension
    private void showUtilitiesButtons() {
       setStaticColor(sessionMidiOut, padTapTempo, 0x38);
       setStaticColor(sessionMidiOut, padUndo, 0x0D);
-      setStaticColor(sessionMidiOut, padRedo, 0x0E);
+      setStaticColor(sessionMidiOut, padRedo, 0x0D);
 
       updatePrerollClickButtonColor(transport.isMetronomeAudibleDuringPreRoll().get());
       updatePrerollButtonsColors(PrerollType.from(transport.preRoll().get()));
